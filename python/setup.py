@@ -26,31 +26,6 @@ import sys
 from distutils.core import setup, Extension
 from distutils import sysconfig
 
-cconf = """${PY_C_CONFIG}""".split(" ")
-ldconf = """${PY_LD_CONFIG}""".split(" ")
-is_apple = """${APPLE}"""
-
-def cleanup(dat):
-    ret = []
-    for elem in dat:
-        elem = elem.strip()
-        if elem != "":
-            ret.append(elem)
-
-    if is_apple != "":
-        for x in ret:
-            if x == "-lpython" or x == "-lframework":
-                x = "-undefined dynamic_lookup"
-
-    return ret
-    # return []
-
-cconf = cleanup(cconf)
-ldconf = cleanup(ldconf)
-# print "Extra C flags from python-config:", cconf
-# print "Extra libraries from python-config:", ldconf
-
-
 def _init_posix(init):
     """
     Forces g++ instead of gcc on most systems
@@ -68,25 +43,22 @@ def _init_posix(init):
         # FIXME raises hardening-no-fortify-functions lintian warning.
         else:
             # Non-Sun needs linkage with g++
-            config_vars['LDSHARED'] = 'g++ -shared -g -W -Wall -Wno-deprecated'
+            config_vars['LDFLAGS'] += ' -shared -g -W -Wall -Wno-deprecated'
 
-        config_vars['CFLAGS'] = '-g -W -Wall -Wno-deprecated -std=c++11'
-        config_vars['OPT'] = '-g -W -Wall -Wno-deprecated -std=c++11'
+        config_vars['CFLAGS'] += ' -g -W -Wall -Wno-deprecated -std=c++11'
+        config_vars['OPT'] += ' -g -W -Wall -Wno-deprecated -std=c++11'
 
     return wrapper
 
 sysconfig._init_posix = _init_posix(sysconfig._init_posix)
 
-__version__ = '@PROJECT_VERSION@'
+__version__ = '5.0.1'
 
 ext_kwds = dict(
     name = "pycryptosat",
-    sources = ["${CMAKE_CURRENT_SOURCE_DIR}/pycryptosat.cpp"],
+    sources = ["pycryptosat.cpp"],
     define_macros = [],
-    extra_compile_args = cconf + ['-I${PROJECT_SOURCE_DIR}', '-I${PROJECT_BINARY_DIR}/cmsat5-src'],
-    extra_link_args = ldconf,
     language = "c++",
-    library_dirs=['.', '${PROJECT_BINARY_DIR}/lib'],
     libraries = ['cryptominisat5']
 )
 
@@ -111,5 +83,5 @@ setup(
     ext_modules = [Extension(**ext_kwds)],
     py_modules = ['pycryptosat'],
     description = "bindings to CryptoMiniSat (a SAT solver)",
-    long_description = open('${CMAKE_CURRENT_SOURCE_DIR}/README.rst').read(),
+    long_description = open('README.rst').read(),
 )

@@ -1,14 +1,12 @@
-execute_process(COMMAND python-config --cflags OUTPUT_VARIABLE PY_C_CONFIG)
-execute_process(COMMAND python-config --ldflags OUTPUT_VARIABLE PY_LD_CONFIG)
-set(SETUP_PY_IN "${CMAKE_CURRENT_SOURCE_DIR}/setup.py.in")
-set(SETUP_PY    "${CMAKE_CURRENT_BINARY_DIR}/setup.py")
+set(SETUP_PY    "${CMAKE_CURRENT_SOURCE_DIR}/setup.py")
 set(OUTPUT      "${CMAKE_CURRENT_BINARY_DIR}/build")
 
-configure_file(${SETUP_PY_IN} ${SETUP_PY})
-
 add_custom_command(OUTPUT ${OUTPUT}/timestamp
-                   COMMAND ${PYTHON_EXECUTABLE}
-                   ARGS setup.py build_ext --inplace --rpath ../lib
+                   COMMAND ${CMAKE_COMMAND}
+                   ARGS -E env "CFLAGS=-I${PROJECT_SOURCE_DIR} -I${PROJECT_BINARY_DIR}/cmsat5-src"
+                               "LDFLAGS=-L${PROJECT_BINARY_DIR}/lib"
+                        ${PYTHON_EXECUTABLE} ${SETUP_PY} build_ext --inplace --rpath ../lib
+                   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
                    DEPENDS libcryptominisat5
 )
 
